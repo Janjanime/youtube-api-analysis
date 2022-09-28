@@ -10,9 +10,14 @@ import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import googleapiclient.errors
 import pandas as pd
+from IPython.display import JSON
 # %%
 youtube_api_key= 'AIzaSyAwaq4T4D7A3DPI12aL7LMOnxLRQexoDFA'
+channel_ids = ['UCcmxOGYGF51T1XsqQLewGtQ',
+    # more channel ids
+]
 
+#%%
 api_service_name = "youtube"
 api_version = "v3"
 
@@ -20,11 +25,31 @@ api_version = "v3"
 youtube = googleapiclient.discovery.build(
     api_service_name, api_version, developerKey=youtube_api_key)
 
-request = youtube.channels().list(
-    part="snippet,contentDetails,statistics",
-    id="UC_x5XG1OV2P6uZZ5FSM9Ttw"
-)
-response = request.execute()
+#%%
+#Channel APIs
+def get_channel_stats(youtube, channel_ids):
+    
+    all_data = []
 
-print(response)
+    request = youtube.channels().list(
+        part="snippet,contentDetails,statistics",
+        id=','.join(channel_ids)
+    )
+    response = request.execute()
+
+    #loop through items
+    for item in response['items']:
+        data = {'channelName': item['snippet']['title'],
+                'subscribers': item['statistics']['subscriberCount'],
+                'views': item['statistics']['viewCount'],
+                'totalVideos': item['statistics']['videoCount'],
+                'playlistId': item['contentDetails']['relatedPlaylists']['uploads']
+        }
+
+        all_data.append(data)
+
+    return(pd.DataFrame(all_data))
+# %%
+channel_stats = get_channel_stats(youtube, channel_ids)
+print(channel_stats)
 # %%
