@@ -13,6 +13,7 @@ import pandas as pd
 from IPython.display import JSON
 # %%
 youtube_api_key= 'AIzaSyAwaq4T4D7A3DPI12aL7LMOnxLRQexoDFA'
+
 channel_ids = ['UCcmxOGYGF51T1XsqQLewGtQ',
     # more channel ids
 ]
@@ -54,6 +55,7 @@ channel_stats = get_channel_stats(youtube, channel_ids)
 print(channel_stats)
 
 # %%
+#piece of code from youtube API for playlist list
 request = youtube.playlistItems().list(
     part="snippet,contentDetails",
     playlistId="UUcmxOGYGF51T1XsqQLewGtQ"
@@ -110,6 +112,48 @@ video_ids = get_video_ids(youtube, playlist_id)
 len(video_ids)
 
 #%%
-#Return list of video_ids
-video_ids
+#Video list API
+
+request = youtube.videos().list(
+    part="snippet,contentDetails,statistics",
+    id=video_ids[0:5]
+)
+response = request.execute()
+JSON(response)
+# %%
+def get_video_details(youtube,video_ids):
+    all_video_info = []
+
+    for i in range(0, len(video_ids),50):
+        request = youtube.videos().list(
+        part="snippet,contentDetails,statistics",
+        id=','.join(video_ids[i:i+50])
+        )
+        response = request.execute()
+
+        for video in response['items']:
+            stats = {'snippet': ['channelTitle', 'title', 'description', 'tags', 'publishedAt'],
+                    'statistics': ['viewCount', 'likeCount', 'favoriteCount', 'commentCount'],
+                    'contentDetails': ['duration', 'definition', 'caption'] 
+
+            }
+
+            video_info = {}
+            video_info['video_id']= video['id']
+
+            for k in stats.keys():
+                for v in stats[k]:
+                    try:
+                        video_info[v] = video[k][v]
+                    except:
+                        video_info[v] = None
+
+            all_video_info.append(video_info)
+            
+    return pd.DataFrame(all_video_info)
+
+#%%
+video_dataframe = get_video_details(youtube,video_ids)
+
+video_dataframe
 # %%
