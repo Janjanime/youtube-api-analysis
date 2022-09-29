@@ -135,7 +135,6 @@ def get_video_details(youtube,video_ids):
             stats = {'snippet': ['channelTitle', 'title', 'description', 'tags', 'publishedAt'],
                     'statistics': ['viewCount', 'likeCount', 'favoriteCount', 'commentCount'],
                     'contentDetails': ['duration', 'definition', 'caption'] 
-
             }
 
             video_info = {}
@@ -156,4 +155,36 @@ def get_video_details(youtube,video_ids):
 video_dataframe = get_video_details(youtube,video_ids)
 
 video_dataframe
+# %%
+print(video_ids[0:5])
+#%%
+#can use the same methodology to create a function for comments
+
+def get_comments_in_videos(youtube, video_ids):
+
+    all_comments = []
+
+    for video_id in video_ids:
+        try:
+            request = youtube.commentThreads().list(
+                part="snippet,replies",
+                videoId=video_id
+            )
+            response = request.execute()
+
+            comments_in_video = [comment['snippet']['topLevelComment']['snippet']['textOriginal'] for comment in response['items'][0:10]]
+            comments_in_video_info = {'video_id': video_id, 'comments': comments_in_video}
+
+            all_comments.append(comments_in_video_info)
+            
+        except: 
+            # When error occurs - most likely because comments are disabled on a video
+            print('Could not get comments for video ' + video_id)
+        
+    return pd.DataFrame(all_comments)
+
+# %%
+comments_dataframe = get_comments_in_videos(youtube,video_ids[0:5])
+
+comments_dataframe
 # %%
