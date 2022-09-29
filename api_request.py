@@ -52,4 +52,64 @@ def get_channel_stats(youtube, channel_ids):
 # %%
 channel_stats = get_channel_stats(youtube, channel_ids)
 print(channel_stats)
+
+# %%
+request = youtube.playlistItems().list(
+    part="snippet,contentDetails",
+    playlistId="UUcmxOGYGF51T1XsqQLewGtQ"
+)
+response = request.execute()
+
+JSON(response)
+
+#%%
+playlist_id = 'UUcmxOGYGF51T1XsqQLewGtQ'
+
+#Creating a function to return playlist video information
+def get_video_ids(youtube, playlist_id):
+
+    request = youtube.playlistItems().list(
+        part="snippet,contentDetails",
+        playlistId="UUcmxOGYGF51T1XsqQLewGtQ",
+    #API docs state that results default to 5, so we specify max
+        maxResults = 50
+        )
+
+    response = request.execute()
+
+    #Make a list of video IDs
+    video_ids = []
+
+    for i in range(len(response['items'])):
+        video_ids.append(response['items'][i]['contentDetails']['videoId'])
+        
+    next_page_token = response.get('nextPageToken')
+    more_pages = True
+    
+    while more_pages:
+        if next_page_token is None:
+            more_pages = False
+        else:
+            request = youtube.playlistItems().list(
+                        part='contentDetails',
+                        playlistId = playlist_id,
+                        maxResults = 50,
+                        pageToken = next_page_token
+                        )
+            response = request.execute()
+    
+            for i in range(len(response['items'])):
+                video_ids.append(response['items'][i]['contentDetails']['videoId'])
+            
+            next_page_token = response.get('nextPageToken')
+        
+    return video_ids
+
+#%%
+video_ids = get_video_ids(youtube, playlist_id)
+len(video_ids)
+
+#%%
+#Return list of video_ids
+video_ids
 # %%
