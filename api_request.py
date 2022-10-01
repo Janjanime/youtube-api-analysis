@@ -1,35 +1,36 @@
 #%%
-# -*- coding: utf-8 -*-
-
-# Sample Python code for youtube.channels.list
-# See instructions for running these code samples locally:
-# https://developers.google.com/explorer-help/code-samples#python
-
 import os
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import googleapiclient.errors
 import pandas as pd
 from IPython.display import JSON
+
 # %%
 youtube_api_key= 'AIzaSyAwaq4T4D7A3DPI12aL7LMOnxLRQexoDFA'
 
-channel_ids = ['UCcmxOGYGF51T1XsqQLewGtQ',
+channel_ids = [ 'UCcmxOGYGF51T1XsqQLewGtQ', #TrashTaste
+                'UCuqmPL64ad8FW7cW0x2YV8g', #EmilyArtful
+                'UC-lHJZR3Gqxm24_Vd_AJ5Yw', #Pewdiepie
+                'UC2UXDak6o7rBm23k3Vv5dww', #TinaHuang
+                'UCFeqAfEuKm7lIg2ddQzh61A', #Emichiru
+                'UCJQJAI7IjbLcpsjWdSzYz0Q', #Thu Vu
     # more channel ids
 ]
 
-#%%
+# Get credentials and create an API client
 api_service_name = "youtube"
 api_version = "v3"
 
-# Get credentials and create an API client
 youtube = googleapiclient.discovery.build(
     api_service_name, api_version, developerKey=youtube_api_key)
 
 #%%
-#Channel APIs
+
 def get_channel_stats(youtube, channel_ids):
-    
+    """
+    Dataframe containing the channel statistics for all channels in the provided list: title, subscriber count, view count, video count, upload playlist
+    """
     all_data = []
 
     request = youtube.channels().list(
@@ -50,29 +51,15 @@ def get_channel_stats(youtube, channel_ids):
         all_data.append(data)
 
     return(pd.DataFrame(all_data))
-# %%
-channel_stats = get_channel_stats(youtube, channel_ids)
-print(channel_stats)
-
-# %%
-#piece of code from youtube API for playlist list
-request = youtube.playlistItems().list(
-    part="snippet,contentDetails",
-    playlistId="UUcmxOGYGF51T1XsqQLewGtQ"
-)
-response = request.execute()
-
-JSON(response)
 
 #%%
-playlist_id = 'UUcmxOGYGF51T1XsqQLewGtQ'
 
-#Creating a function to return playlist video information
 def get_video_ids(youtube, playlist_id):
+    """List of video IDs of all videos in the playlist"""
 
     request = youtube.playlistItems().list(
-        part="snippet,contentDetails",
-        playlistId="UUcmxOGYGF51T1XsqQLewGtQ",
+        part="contentDetails",
+        playlistId=playlist_id,
     #API docs state that results default to 5, so we specify max
         maxResults = 50
         )
@@ -107,21 +94,16 @@ def get_video_ids(youtube, playlist_id):
         
     return video_ids
 
-#%%
-video_ids = get_video_ids(youtube, playlist_id)
-len(video_ids)
-
-#%%
-#Video list API
-
-request = youtube.videos().list(
-    part="snippet,contentDetails,statistics",
-    id=video_ids[0:5]
-)
-response = request.execute()
-JSON(response)
 # %%
+
 def get_video_details(youtube,video_ids):
+    """
+    Dataframe with statistics of videos, i.e.:
+        'channelTitle', 'title', 'description', 'tags', 'publishedAt'
+        'viewCount', 'likeCount', 'favoriteCount', 'commentCount'
+        'duration', 'definition', 'caption'
+    """
+    
     all_video_info = []
 
     for i in range(0, len(video_ids),50):
@@ -152,15 +134,9 @@ def get_video_details(youtube,video_ids):
     return pd.DataFrame(all_video_info)
 
 #%%
-video_dataframe = get_video_details(youtube,video_ids)
-
-video_dataframe
-# %%
-print(video_ids[0:5])
-#%%
-#can use the same methodology to create a function for comments
 
 def get_comments_in_videos(youtube, video_ids):
+    """Dataframe with video IDs and associated top level comment in text."""
 
     all_comments = []
 
@@ -183,8 +159,25 @@ def get_comments_in_videos(youtube, video_ids):
         
     return pd.DataFrame(all_comments)
 
+
+
+#%%
+channel_stats = get_channel_stats(youtube, channel_ids)
+print(channel_stats)
+
+#changing a dataframe into a dictionary and returning a list
+channel_dict = channel_stats.to_dict('list')
+extract_playlist_id = channel_dict['playlistId']
+print(extract_playlist_id)
+
+#%%
+#Using playlist from gett_channel_stats to find videos
+test_video_ids = get_video_ids(youtube, 'UUcmxOGYGF51T1XsqQLewGtQ')
+
+video_dataframe = get_video_details(youtube,test_video_ids)
+video_dataframe
 # %%
-comments_dataframe = get_comments_in_videos(youtube,video_ids[0:5])
+comments_dataframe = get_comments_in_videos(youtube,test_video_ids[0:5])
 
 comments_dataframe
 # %%
