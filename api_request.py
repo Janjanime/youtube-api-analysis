@@ -1,10 +1,27 @@
 #%%
 import os
-import google_auth_oauthlib.flow
-import googleapiclient.discovery
-import googleapiclient.errors
 import pandas as pd
+import numpy as np
+from dateutil import parser
 from IPython.display import JSON
+import isodate
+
+#Google API
+import googleapiclient.discovery
+
+#Data Vizualization libraries
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+import seaborn as sns
+sns.set(style="darkgrid", color_codes=True)
+
+
+# NLP libraries
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+nltk.download('stopwords')
+nltk.download('punkt')
 
 # %%
 youtube_api_key= 'AIzaSyAwaq4T4D7A3DPI12aL7LMOnxLRQexoDFA'
@@ -15,6 +32,7 @@ channel_ids = [ 'UCcmxOGYGF51T1XsqQLewGtQ', #TrashTaste
                 'UC2UXDak6o7rBm23k3Vv5dww', #TinaHuang
                 'UCFeqAfEuKm7lIg2ddQzh61A', #Emichiru
                 'UCJQJAI7IjbLcpsjWdSzYz0Q', #Thu Vu
+                'UC2Ds30pkifFVD0CE08wF50g', #Daidus
     # more channel ids
 ]
 
@@ -159,6 +177,48 @@ def get_comments_in_videos(youtube, video_ids):
         
     return pd.DataFrame(all_comments)
 
+#%%
+#Running functions
+get_channel_stats(youtube, channel_ids)
+
+video_ids = get_video_ids(youtube, 'UUJQJAI7IjbLcpsjWdSzYz0Q')
+video_df = get_video_details(youtube, video_ids)
+video_df
+
+#%%
+#Data Pre-processing
+
+video_df.isnull().any()
+
+video_df.dtypes
+#change datatypes to numeric where relevant
+numeric_cols = ['viewCount', 'likeCount', 'favoriteCount', 'commentCount']
+video_df[numeric_cols] = video_df[numeric_cols].apply(pd.to_numeric, errors='coerce', axis=1)
+
+#create a column for Published day in the week
+video_df['publishedAt'] = video_df['publishedAt'].apply(lambda x: parser.parse(x))
+video_df['publishDayName'] = video_df['publishedAt'].apply(lambda x: x.strftime("%A"))
+
+#change date type from Youtube API duration to seconds
+video_df['durationSeconds'] = video_df['duration'].apply(lambda x: isodate.parse_duration(x))
+video_df['durationSeconds'] = video_df['durationSeconds'].astype('timedelta64[s]')
+video_df[['durationSeconds', 'duration']]
+
+#add a tag count
+video_df['tagsCount'] = video_df['tags'].apply(lambda x: 0 if x is None else len(x))
+
+# Comments and likes per 1000 view ratio
+video_df['likeRatio'] = video_df['likeCount']/ video_df['viewCount'] * 1000
+video_df['commentRatio'] = video_df['commentCount']/ video_df['viewCount'] * 1000
+
+# Title character length
+video_df['titleLength'] = video_df['title'].apply(lambda x: len(x))
+
+#%%
+video_df.head()
+
+#%%
+#Exploratory Data Analysis
 
 
 #%%
@@ -180,4 +240,3 @@ video_dataframe
 comments_dataframe = get_comments_in_videos(youtube,test_video_ids[0:5])
 
 comments_dataframe
-# %%
