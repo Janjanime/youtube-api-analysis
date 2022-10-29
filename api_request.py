@@ -201,7 +201,8 @@ video_df['publishDayName'] = video_df['publishedAt'].apply(lambda x: x.strftime(
 
 #change date type from Youtube API duration to seconds
 video_df['durationSeconds'] = video_df['duration'].apply(lambda x: isodate.parse_duration(x))
-video_df['durationSeconds'] = video_df['durationSeconds'].astype('timedelta64[s]')
+video_df['durationSeconds'] = video_df['durationSeconds'
+].astype('timedelta64[s]')
 video_df[['durationSeconds', 'duration']]
 
 #add a tag count
@@ -219,8 +220,19 @@ video_df.head()
 
 #%%
 #Exploratory Data Analysis
+top_10_videos = sns.barplot(x = 'title', y = 'viewCount', data = video_df.sort_values('viewCount', ascending=False)[0:10])
+best_plot = top_10_videos.set_xticklabels(top_10_videos.get_xticklabels(), rotation=90)
+top_10_videos.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.0f}'.format(x/1000) + 'K'))
 
+#%%
+last_10_videos = sns.barplot(x = 'title', y = 'viewCount', data = video_df.sort_values('viewCount', ascending=True)[0:10])
+worst_plot = last_10_videos.set_xticklabels(last_10_videos.get_xticklabels(), rotation=90)
+last_10_videos.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.0f}'.format(x/1000) + 'K'))
 
+#%%
+#View distribution per video
+sns.violinplot(video_df['channelTitle'], video_df['viewCount'])
+#can be useful if you want to compare several channels together
 #%%
 channel_stats = get_channel_stats(youtube, channel_ids)
 print(channel_stats)
