@@ -22,6 +22,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 nltk.download('stopwords')
 nltk.download('punkt')
+from wordcloud import WordCloud
 
 # %%
 youtube_api_key= 'AIzaSyAwaq4T4D7A3DPI12aL7LMOnxLRQexoDFA'
@@ -233,6 +234,43 @@ last_10_videos.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:
 #View distribution per video
 sns.violinplot(video_df['channelTitle'], video_df['viewCount'])
 #can be useful if you want to compare several channels together
+
+#%%
+#Views vs likes and comments
+fig, top_10_videos = plt.subplots(1,2)
+sns.scatterplot(data = video_df, x = 'commentCount', y = 'viewCount', ax = top_10_videos[0])
+sns.scatterplot(data = video_df, x = 'likeCount', y = 'viewCount', ax = top_10_videos[1])
+
+#%%
+#Video duration
+sns.histplot(data = video_df, x = 'durationSeconds', bins=30)
+
+#%%
+#Creating a word cloud from video titles
+stop_words = set(stopwords.words('english'))
+video_df['title_no_stopwords'] = video_df['title'].apply(lambda x: [item for item in str(x).split() if item not in stop_words])
+
+all_words = list([a for b in video_df['title_no_stopwords'].tolist() for a in b])
+all_words_str = ' '.join(all_words)
+
+def plot_cloud(wordcloud):
+    plt.figure(figsize=(30,20))
+    plt.imshow(wordcloud)
+    plt.axis("off");
+
+
+wordcloud = WordCloud(width=2000, height=1000, random_state=1, background_color='black',
+                        colormap='viridis', collocations=False).generate(all_words_str)
+
+plot_cloud(wordcloud)
+
+#%%
+#Upload Schedule
+day_df = pd.DataFrame(video_df['publishDayName'].value_counts())
+weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+day_df = day_df.reindex(weekdays)
+ax = day_df.reset_index().plot.bar(x='index', y='publishDayName', rot=0)
+
 #%%
 channel_stats = get_channel_stats(youtube, channel_ids)
 print(channel_stats)
