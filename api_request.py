@@ -29,7 +29,7 @@ youtube_api_key= 'AIzaSyAwaq4T4D7A3DPI12aL7LMOnxLRQexoDFA'
 
 channel_ids = [ 'UCcmxOGYGF51T1XsqQLewGtQ', #TrashTaste
                 'UCuqmPL64ad8FW7cW0x2YV8g', #EmilyArtful
-                'UC-lHJZR3Gqxm24_Vd_AJ5Yw', #Pewdiepie
+                #'UC-lHJZR3Gqxm24_Vd_AJ5Yw', #Pewdiepie
                 'UC2UXDak6o7rBm23k3Vv5dww', #TinaHuang
                 'UCFeqAfEuKm7lIg2ddQzh61A', #Emichiru
                 'UCJQJAI7IjbLcpsjWdSzYz0Q', #Thu Vu
@@ -59,13 +59,13 @@ def get_channel_stats(youtube, channel_ids):
     response = request.execute()
 
     #loop through items
-    for item in response['items']:
-        data = {'channelName': item['snippet']['title'],
-                'subscribers': item['statistics']['subscriberCount'],
-                'views': item['statistics']['viewCount'],
-                'totalVideos': item['statistics']['videoCount'],
-                'playlistId': item['contentDetails']['relatedPlaylists']['uploads']
-        }
+    for i in range(len(response['items'])):
+        data = dict(channelName = response['items'][i]['snippet']['title'],
+                subscribers = response['items'][i]['statistics']['subscriberCount'],
+                views = response['items'][i]['statistics']['viewCount'],
+                totalVideos = response['items'][i]['statistics']['videoCount'],
+                playlistId = response['items'][i]['contentDetails']['relatedPlaylists']['uploads']
+        )
 
         all_data.append(data)
 
@@ -217,7 +217,7 @@ video_df['commentRatio'] = video_df['commentCount']/ video_df['viewCount'] * 100
 video_df['titleLength'] = video_df['title'].apply(lambda x: len(x))
 
 #%%
-video_df.head()
+video_df.tail()
 
 #%%
 #Exploratory Data Analysis
@@ -288,5 +288,29 @@ video_dataframe = get_video_details(youtube,test_video_ids)
 video_dataframe
 # %%
 comments_dataframe = get_comments_in_videos(youtube,test_video_ids[0:5])
-
 comments_dataframe
+
+# %%
+#Channel exploration
+channel_data = get_channel_stats(youtube, channel_ids)
+channel_data.dtypes
+
+number_cols = ['subscribers', 'views', 'totalVideos']
+channel_data[number_cols] = channel_data[number_cols].apply(pd.to_numeric, errors='coerce')
+
+# %%
+# Number of subscribers per channel to have a view of how popular the channels are when compared with one another.
+sns.set(rc={'figure.figsize':(10,8)})
+ax = sns.barplot(x='channelName', y='subscribers', data=channel_data.sort_values('subscribers', ascending=False))
+ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.0f}'.format(x/1000) + 'K'))
+plot = ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
+
+# %%
+#rank considering the total number of views of the channels
+sns.set(rc={'figure.figsize':(10,8)})
+ax = sns.barplot(x='channelName', y='views', data=channel_data.sort_values('views', ascending=False))
+ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.0f}'.format(x/1000) + 'K'))
+
+plot = ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
+
+# %%
