@@ -30,13 +30,13 @@ from wordcloud import WordCloud
 # %%
 youtube_api_key= 'AIzaSyAwaq4T4D7A3DPI12aL7LMOnxLRQexoDFA'
 
-channel_ids = [ 'UCcmxOGYGF51T1XsqQLewGtQ', #TrashTaste
-                'UCuqmPL64ad8FW7cW0x2YV8g', #EmilyArtful
-                #'UC-lHJZR3Gqxm24_Vd_AJ5Yw', #Pewdiepie
-                'UC2UXDak6o7rBm23k3Vv5dww', #TinaHuang
-                'UCFeqAfEuKm7lIg2ddQzh61A', #Emichiru
-                'UCJQJAI7IjbLcpsjWdSzYz0Q', #Thu Vu
-                'UC2Ds30pkifFVD0CE08wF50g', #Daidus
+channel_ids = [ 'UCiM8arBZ-GyuBFG3wy6fEgw', #Hwasa
+                'UC9Gxb0gMCh3EPIDLQXeQUog', #Chung ha Official
+                'UCsVpgRB8YHLWA0ZrkhtHvTA', #Sunmi
+                'UC8GmeiLd5xjh2j5VmdePWQw', #BIBI
+                'UCXOMKEPp0CALdBSPkReI5BQ', #Wheein
+                'UC0uTcuuOtUFwtn9aKUVGjXg', #Hyuna
+                'UCN2bQLTTvNPZWCWU5TYghKA', #Jessi
     # more channel ids
 ]
 
@@ -93,9 +93,6 @@ for c in channel_stats['channelName'].unique():
     #combine comment and video detail data
     video_df = video_df.append(video_data, ignore_index=True)
     comments_df = comments_df.append(comment_data, ignore_index=True)
-
-#%%
-len(video_df.loc[video_df['channelTitle']=='Trash Taste'])
 
 #%%
 video_df
