@@ -51,6 +51,7 @@ youtube = googleapiclient.discovery.build(
 #Running functions
 channel_stats = api.get_channel_stats(youtube, channel_ids)
 type(channel_stats)
+print(channel_stats)
 # %%
 #Channel exploration
 channel_stats.dtypes
@@ -79,7 +80,7 @@ video_df = pd.DataFrame()
 comments_df = pd.DataFrame()
 
 # Get video Ids from playlist data while loading each channel
-for c in channel_stats['channelName'].unique():
+for c in channel_stats['channelName'].unique(): #try group by instead of unique
     print('Loading information from ' + c )
     channel_playlist_id=channel_stats.loc[channel_stats['channelName']==c, 'playlistId'].iloc[0]
     video_ids = api.get_video_ids(youtube,channel_playlist_id)
@@ -95,7 +96,7 @@ for c in channel_stats['channelName'].unique():
     comments_df = comments_df.append(comment_data, ignore_index=True)
 
 #%%
-video_df
+video_df.head()
 #%%
 comments_df
 #%%
@@ -161,7 +162,7 @@ sns.histplot(data = video_df, x = 'durationSeconds', bins=30)
 
 #%%
 #Creating a word cloud from video titles
-stop_words = set(stopwords.words('english'))
+stop_words = set(stopwords.words(['english','korean']))
 video_df['title_no_stopwords'] = video_df['title'].apply(lambda x: [item for item in str(x).split() if item not in stop_words])
 
 all_words = list([a for b in video_df['title_no_stopwords'].tolist() for a in b])

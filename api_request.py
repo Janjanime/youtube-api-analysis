@@ -33,7 +33,8 @@ def get_channel_stats(youtube, channel_ids):
 
     #loop through items
     for i in range(len(response['items'])):
-        data = dict(channelName = response['items'][i]['snippet']['title'],
+        data = dict(channelId = response['items'][i]['id'],
+                channelName = response['items'][i]['snippet']['title'],
                 subscribers = response['items'][i]['statistics']['subscriberCount'],
                 views = response['items'][i]['statistics']['viewCount'],
                 totalVideos = response['items'][i]['statistics']['videoCount'],
@@ -50,7 +51,7 @@ def get_video_ids(youtube, playlist_id):
     """List of video IDs of all videos in the playlist"""
 
     request = youtube.playlistItems().list(
-        part="contentDetails",
+        part="contentDetails, snippet",
         playlistId=playlist_id,
     #API docs state that results default to 5, so we specify max
         maxResults = 50
@@ -63,7 +64,7 @@ def get_video_ids(youtube, playlist_id):
 
     for i in range(len(response['items'])):
         video_ids.append(response['items'][i]['contentDetails']['videoId'])
-        
+
     next_page_token = response.get('nextPageToken')
     more_pages = True
     
@@ -106,8 +107,9 @@ def get_video_details(youtube,video_ids):
         response = request.execute()
 
         for video in response['items']:
-            stats = {'snippet': ['channelTitle', 'title', 'description', 'tags', 'publishedAt'],
-                    'statistics': ['viewCount', 'likeCount', 'favoriteCount', 'commentCount'],
+            stats = {'snippet': ['channelTitle', 'title', 'description', 'tags', 
+                                 'publishedAt', 'channelId'],
+                    'statistics': ['viewCount', 'likeCount', 'favoriteCount','commentCount'],
                     'contentDetails': ['duration', 'definition', 'caption'] 
             }
 
