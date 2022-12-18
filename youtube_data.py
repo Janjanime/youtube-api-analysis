@@ -158,14 +158,17 @@ sns.scatterplot(data = video_df, x = 'likeCount', y = 'viewCount', ax = top_10_v
 
 #%%
 #Video duration
-sns.histplot(data = video_df, x = 'durationSeconds', bins=30)
+histogram = sns.histplot(data = video_df, x = 'durationSeconds', bins=50)
+plt.xlim(0,1500)
+# can also view on a logrithmic scale using
+# histogram.set_yscale('log')
 
 #%%
-#Creating a word cloud from video titles
-stop_words = set(stopwords.words(['english','korean']))
-video_df['title_no_stopwords'] = video_df['title'].apply(lambda x: [item for item in str(x).split() if item not in stop_words])
+#Creating a word cloud from video comments
+stop_words = set(stopwords.words(['english']))
+comments_df['title_no_stopwords'] = comments_df['comments'].apply(lambda x: [item for item in str(x).split() if item not in stop_words])
 
-all_words = list([a for b in video_df['title_no_stopwords'].tolist() for a in b])
+all_words = list([a for b in comments_df['title_no_stopwords'].tolist() for a in b])
 all_words_str = ' '.join(all_words)
 
 def plot_cloud(wordcloud):
