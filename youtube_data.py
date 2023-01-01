@@ -15,8 +15,9 @@ import googleapiclient.discovery
 #Data Vizualization libraries
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import matplotlib as matplotlib
 import seaborn as sns
-sns.set(style="darkgrid", color_codes=True)
+matplotlib.rcParams['font.family'] = ['Noto Sans KR']
 
 
 # NLP libraries
@@ -61,14 +62,14 @@ channel_stats[number_cols] = channel_stats[number_cols].apply(pd.to_numeric, err
 
 # %%
 # Number of subscribers per channel to have a view of how popular the channels are when compared with one another.
-sns.set(rc={'figure.figsize':(10,8)})
+sns.set(rc={'figure.figsize':(10,8)}, style="darkgrid", color_codes=True, font='Noto Sans KR')
 ax = sns.barplot(x='channelName', y='subscribers', data=channel_stats.sort_values('subscribers', ascending=False))
 ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.0f}'.format(x/1000) + 'K'))
 plot = ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
 
 # %%
 #rank considering the total number of views of the channels
-sns.set(rc={'figure.figsize':(10,8)})
+sns.set(rc={'figure.figsize':(10,8)}, style="darkgrid", color_codes=True, font='Noto Sans KR')
 ax = sns.barplot(x='channelName', y='views', data=channel_stats.sort_values('views', ascending=False))
 ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.0f}'.format(x/1000) + 'K'))
 
@@ -98,7 +99,8 @@ for c in channel_stats['channelName'].unique(): #try group by instead of unique
 #%%
 video_df.head()
 #%%
-comments_df
+comments_df.head()
+
 #%%
 #Data Pre-processing
 video_df.isnull().any()
@@ -147,7 +149,8 @@ last_10_videos.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:
 
 #%%
 #View distribution per video
-sns.violinplot(video_df['channelTitle'], video_df['viewCount'])
+video_view_dist = sns.violinplot(video_df['channelTitle'], video_df['viewCount'])
+video_view_dist.set_xticklabels(video_view_dist.get_xticklabels(), rotation=45)
 #can be useful if you want to compare several channels together
 
 #%%
@@ -166,10 +169,22 @@ plt.xlim(0,1500)
 #%%
 #Creating a word cloud from video comments
 stop_words = set(stopwords.words(['english']))
-comments_df['title_no_stopwords'] = comments_df['comments'].apply(lambda x: [item for item in str(x).split() if item not in stop_words])
+names_for_removal = {'hyuna', 'sunmi', 'hwasa', 'bibi', 'wheein', 'chungha', '선미',
+         '청하', 'chung', 'ha', 'jessi'}
+comments_df['title_no_stopwords'] = comments_df['comments'].apply(lambda x: [item for item in str(x).lower().split() if item not in stop_words])
 
-all_words = list([a for b in comments_df['title_no_stopwords'].tolist() for a in b])
-all_words_str = ' '.join(all_words)
+#Creating a word list without names
+no_name = []
+for item in comments_df['title_no_stopwords']:
+    for word in item:
+        for w in word.lower().split():
+            new_w = ''.join(c for c in w if c.isalnum())
+            if new_w not in names_for_removal:
+                no_name.append(w)
+
+# all_words = list([a for b in comments_df['title_no_stopwords'].tolist() for a in b])
+# all_words_str = ' '.join(all_words)
+all_words_str = ' '.join(no_name)
 
 def plot_cloud(wordcloud):
     plt.figure(figsize=(30,20))
@@ -177,9 +192,10 @@ def plot_cloud(wordcloud):
     plt.axis("off");
 
 
-wordcloud = WordCloud(width=2000, height=1000, random_state=1, background_color='black',
+wordcloud = WordCloud(width=2000, height=1000, random_state=1, background_color='white', 
+                        font_path=r'C:\Users\jancr\anaconda3\Lib\site-packages\matplotlib\mpl-data\fonts\ttf\NotoSansKR-Regular.otf',
                         colormap='viridis', collocations=False).generate(all_words_str)
-
+                    
 plot_cloud(wordcloud)
 
 #%%
