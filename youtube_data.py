@@ -60,6 +60,12 @@ channel_stats.dtypes
 number_cols = ['subscribers', 'views', 'totalVideos']
 channel_stats[number_cols] = channel_stats[number_cols].apply(pd.to_numeric, errors='coerce')
 
+# call to action for viewers: subscribe
+channel_stats['subsPerViewPct'] = round(channel_stats['subscribers']/channel_stats['views']*100,4)
+
+# How many views should we expect per video based on subscribers?
+channel_stats['viewSubRatio'] =  round(channel_stats['views']/channel_stats['subscribers'],4)
+
 # %%
 # Number of subscribers per channel to have a view of how popular the channels are when compared with one another.
 sns.set(rc={'figure.figsize':(10,8)}, style="darkgrid", color_codes=True, font='Noto Sans KR')
@@ -205,3 +211,19 @@ weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 
 day_df = day_df.reindex(weekdays)
 ax = day_df.reset_index().plot.bar(x='index', y='publishDayName', rot=0)
 
+#%%
+# Creating one dataset for exploration in Tableau
+channel_video_df = channel_stats.merge(video_df, how='inner', on='channelId')
+kpop_df = channel_video_df.merge(comments_df, how='left', on='video_id')
+
+#%%
+# find what records are dropped
+a = channel_stats.merge(video_df, how='outer', on='channelId', indicator=True)
+a[a['_merge'] == 'right_only']
+# a few of Hyuna's videos seem to be from other channels than the official one,
+# however they were included due to the playlist
+
+#%%
+a = a.drop(['_merge'], axis=1)
+b = a.merge(comments_df, how='outer', on='video_id', indicator=True)
+b[b['_merge'] == 'left_only']
